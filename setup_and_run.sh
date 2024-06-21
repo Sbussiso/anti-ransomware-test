@@ -1,25 +1,26 @@
 #!/bin/bash
 
-# Ensure the script is being run with sudo on Linux
-if [ "$(uname -s)" = "Linux" ] && [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root. Re-running with sudo..."
-    exec sudo "$0" "$@"
-fi
+# Function to check if the script is run as root
+check_root() {
+    if [[ $EUID -ne 0 ]]; then
+        echo "This script must be run as root. Re-running with sudo..."
+        sudo "$0" "$@"
+        exit $?
+    fi
+}
 
-# Set up virtual environment
-if [ ! -d "venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv venv
-fi
+check_root
 
-# Activate virtual environment
+# Create and activate a virtual environment
+python3 -m venv venv
 source venv/bin/activate
 
-# Upgrade pip
-pip install --upgrade pip
-
-# Install necessary packages
+# Install required Python packages
+pip install --upgrade pip setuptools wheel
 pip install cryptography
 
-# Run the encryption script
+# Ensure the main.py script is executable
+chmod +x main.py
+
+# Run the main.py script
 python main.py

