@@ -11,7 +11,7 @@ from cryptography.fernet import Fernet
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Setup logging
-logging.basic_config(level=logging.DEBUG,
+logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     handlers=[
                         logging.StreamHandler()
@@ -122,6 +122,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
