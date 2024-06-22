@@ -7,6 +7,8 @@ import platform
 import logging
 import signal
 import time
+import gc
+import psutil
 from cryptography.fernet import Fernet
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -98,9 +100,14 @@ def bus_error_handler(signum, frame):
 
 signal.signal(signal.SIGBUS, bus_error_handler)
 
-# Encrypt files in chunks
+# Function to get available memory in percentage
+def get_available_memory_percent():
+    return psutil.virtual_memory().available * 100 / psutil.virtual_memory().total
+
+# Encrypt files in chunks with garbage collection and memory management
 def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
     all_files = get_all_files(root_dir, exclude_paths)
+    chunk_count = 0
     for chunk in process_files_in_chunks(all_files, chunk_size):
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(encrypt_file, file) for file in chunk]
@@ -109,6 +116,19 @@ def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
                     future.result()
                 except Exception as e:
                     logging.error(f"Error processing a file: {e}")
+        chunk_count += 1
+        if chunk_count % 100 == 0:  # Adjust this number based on your needs
+            logging.debug("Forcing garbage collection")
+            gc.collect()
+        
+        # Check available memory and adjust chunk size if necessary
+        available_memory_percent = get_available_memory_percent()
+        logging.debug(f"Available memory: {available_memory_percent:.2f}%")
+        if available_memory_percent < 10:  # If available memory is less than 10%
+            logging.warning("Low memory detected, reducing chunk size")
+            chunk_size = max(1, chunk_size // 2)
+        elif available_memory_percent > 50:  # If available memory is more than 50%
+            chunk_size = min(chunk_size * 2, 1000)  # Increase chunk size but cap it to 1000
 
 # Main function
 def main():
@@ -129,6 +149,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
