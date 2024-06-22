@@ -77,7 +77,7 @@ EXCLUDE_PATHS = [
     "/var/log",
     "/usr/local",
     "/opt"
-    "/man"
+    "/usr/share/man"
 ]
 
 # Function to encrypt a file
