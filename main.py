@@ -49,6 +49,9 @@ python_env_path = os.path.dirname(os.path.dirname(sys.executable))
 # Get the Node.js environment path managed by nvm
 nvm_path = os.path.expanduser("~/.nvm")
 
+# Get the Ruby environment path managed by rvm
+rvm_path = os.path.expanduser("~/.rvm")
+
 # Get common system paths to exclude
 system_paths = [
     "/usr/share",
@@ -60,7 +63,6 @@ system_paths = [
     "/usr/local/python",
     "/usr/local/python3",
     "/usr/local/py-utils",
-    "/usr/local/share/nvm"
 ]
 
 # Function to encrypt a file
@@ -134,7 +136,8 @@ def main():
     exclude_paths = [
         os.path.abspath(python_env_path),
         os.path.abspath(os.path.dirname(__file__)),
-        os.path.abspath(nvm_path)
+        os.path.abspath(nvm_path),
+        os.path.abspath(rvm_path),
     ]
     
     # Dynamically add system paths
@@ -151,6 +154,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
