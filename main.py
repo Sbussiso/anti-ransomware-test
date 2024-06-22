@@ -59,6 +59,7 @@ system_paths = [
     "/usr/lib",
     "/usr/local/python",
     "/usr/local/python3",
+    "/usr/local/py-utils",
 ]
 
 # Function to encrypt a file
