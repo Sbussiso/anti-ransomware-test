@@ -90,7 +90,7 @@ def encrypt_files(root_dir, key, exclude_paths):
             except Exception as e:
                 logging.error(f"Error encrypting file: {e}")
 
-def encrypt_files_with_resource_checks(root_dir, key, exclude_paths, chunk_size=300):
+def encrypt_files_with_resource_checks(root_dir, key, exclude_paths, chunk_size=1000):
     """
     Encrypt files in the specified root directory with resource checks, excluding specified paths.
     """
