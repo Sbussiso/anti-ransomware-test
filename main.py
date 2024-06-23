@@ -143,7 +143,7 @@ def main():
     exclude_paths = {os.path.join(script_dir, file) for file in exclude_files}
     
     #"/usr", "/etc", "/var", "/opt", "/sbin", "/dev", "/proc", "/sys", "/venv", "/workspaces", "/.codespaces", "/vscode"
-    system_paths = ["/var", "/opt", "/dev", "/proc", "/sys", "/venv", "/workspaces", "/.codespaces", "/vscode", "/snap", "/boot"]
+    system_paths = ["/usr","/var", "/opt", "/dev", "/proc", "/sys", "/venv", "/workspaces", "/.codespaces", "/vscode", "/snap", "/boot"]
     # Convert system_paths to absolute paths before updating exclude_paths
     exclude_paths.update([os.path.abspath(path) for path in system_paths])
     
