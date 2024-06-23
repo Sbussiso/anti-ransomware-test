@@ -106,6 +106,8 @@ def encrypt_files_with_resource_checks(root_dir, key, exclude_paths, chunk_size=
     if file_chunk:
         process_file_chunk(file_chunk, key, exclude_paths)
 
+
+
 def process_file_chunk(file_chunk, key, exclude_paths):
     """
     Process a chunk of files, encrypting them with the provided encryption key and excluding specified paths.
