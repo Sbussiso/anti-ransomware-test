@@ -126,6 +126,7 @@ def process_file_chunk(file_chunk, key, exclude_paths):
             except Exception as e:
                 logging.error(f"Error encrypting file: {e}")
 
+# main execution
 def main():
     """
     Main function to run the encryption process.
