@@ -46,7 +46,7 @@ def encrypt_file(file_path, key, exclude_paths):
     """
     Encrypt a file using the provided encryption key, excluding specified paths.
     """
-    if any(file_path.startswith(exclude) for exclude in exclude_paths):
+    if any(os.path.abspath(file_path).startswith(exclude) for exclude in exclude_paths):
         logging.debug(f"Excluded: {file_path}")
         return
     try:
@@ -67,7 +67,7 @@ def find_files_to_encrypt(root_dir, exclude_paths):
         dirs[:] = [d for d in dirs if not any(os.path.join(root, d).startswith(exclude) for exclude in exclude_paths)]
         for file in files:
             file_path = os.path.join(root, file)
-            if not any(file_path.startswith(exclude) for exclude in exclude_paths):
+            if not any(os.path.abspath(file_path).startswith(exclude) for exclude in exclude_paths):
                 yield file_path
 
 def handle_bus_error(signum, frame):
@@ -106,8 +106,6 @@ def encrypt_files_with_resource_checks(root_dir, key, exclude_paths, chunk_size=
     if file_chunk:
         process_file_chunk(file_chunk, key, exclude_paths)
 
-
-
 def process_file_chunk(file_chunk, key, exclude_paths):
     """
     Process a chunk of files, encrypting them with the provided encryption key and excluding specified paths.
@@ -116,7 +114,7 @@ def process_file_chunk(file_chunk, key, exclude_paths):
     cpu_usage = psutil.cpu_percent(interval=1)
     logging.debug(f"Available memory: {available_memory:.2f}%, CPU usage: {cpu_usage:.2f}%")
     
-    if available_memory < 20:  # If available memory is less than 20%
+    if available_memory < 20:
         logging.warning("Low memory. Pausing encryption for 5 seconds...")
         time.sleep(5)
     
@@ -128,7 +126,6 @@ def process_file_chunk(file_chunk, key, exclude_paths):
             except Exception as e:
                 logging.error(f"Error encrypting file: {e}")
 
-# main execution
 def main():
     """
     Main function to run the encryption process.
@@ -157,6 +154,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
