@@ -134,7 +134,7 @@ def main():
     absolute_path_to_exclude = os.path.abspath(relative_path_to_exclude)
     exclude_paths.add(absolute_path_to_exclude)
     
-    system_paths = ["/usr", "/var", "/opt", "/dev", "/proc", "/sys", "/venv", "/workspaces", "/.codespaces", "/vscode", "/snap", "/boot", "/run"]
+    system_paths = ["/usr", "/var", "/opt", "/dev", "/proc", "/sys", "/venv", "/workspaces", "/.codespaces", "/vscode", "/snap", "/boot", "/run", "/etc"]
     exclude_paths.update([os.path.abspath(path) for path in system_paths])
     
     logging.debug(f"Exclude paths: {exclude_paths}")
