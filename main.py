@@ -31,7 +31,7 @@ def elevate_privileges_if_needed():
             sys.exit(1)
     elif platform.system() == "Windows":
         logging.info("Please run as administrator.")
-        sys.exit(1)
+        #sys.exit(1)
 
 def generate_encryption_key():
     """
