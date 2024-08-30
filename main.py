@@ -9,6 +9,7 @@ import psutil
 from cryptography.fernet import Fernet
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
 def setup_logging():
     """
     Set up logging configuration.
